@@ -35,9 +35,6 @@ function fileDisplay(folderPath, fileList) {
                 // 获取图片拍摄地点信息
 
                 if (result.tags && Object.keys(result.tags).length > 0) {
-                    if (result.tags.GPSLatitude) {
-                        console.log(result.tags)
-                    }
                     // `result.tags.GPSLatitude,result.tags.GPSLongitude}`
                     obj.location = result.tags.GPSLatitude ?  (result.tags.GPSLatitude + ',' + result.tags.GPSLongitude)  : ""
                     if (result.tags.DateTimeOriginal) {
