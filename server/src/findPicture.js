@@ -8,6 +8,7 @@ const ExifParser = require('exif-parser');
  * 文件遍历方法
  * @param filePath 需要遍历的文件路径
  */
+
 function fileDisplay(folderPath, fileList) {
     if (!fileList) {
         fileList = [];
@@ -16,7 +17,7 @@ function fileDisplay(folderPath, fileList) {
     files.forEach((filename) => {
         const filePath = path.join(folderPath, filename);
         const stat = fs.statSync(filePath);
-        if (stat.isDirectory()) {
+        if (stat.isDirectory() && filename !== '@eaDir') {
             // 是目录，继续遍历子文件夹
             fileDisplay(filePath, fileList);
         } else if (stat.isFile() && setting.reg.test(filePath)) {
@@ -32,9 +33,13 @@ function fileDisplay(folderPath, fileList) {
                 const parser = ExifParser.create(buffer);
                 const result = parser.parse();
                 // 获取图片拍摄地点信息
-                // console.log(result)
+
                 if (result.tags && Object.keys(result.tags).length > 0) {
-                    obj.location = `${result.tags.GPSLatitude},${result.tags.GPSLongitude}`
+                    if (result.tags.GPSLatitude) {
+                        console.log(result.tags)
+                    }
+                    // `result.tags.GPSLatitude,result.tags.GPSLongitude}`
+                    obj.location = result.tags.GPSLatitude ?  (result.tags.GPSLatitude + ',' + result.tags.GPSLongitude)  : ""
                     if (result.tags.DateTimeOriginal) {
                         obj.date = moment(result.tags.DateTimeOriginal * 1000).format('YYYY-MM-DD HH:mm:ss');
                     }

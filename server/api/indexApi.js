@@ -1,19 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const publicFuc = require('../utils/pubilc');
+const setting = require('../setting');
 
 
-
-// const setting = require('../setting');
-
-//
-router.get('/getPicture', (req, res) => {
+router.get('/age/getPicture', (req, res) => {
     const pictureList = require('../src/findPicture');
     let newList = null
     pictureList.map(item=>{
-        item.dateType= publicFuc.age(item.date)
+        item.dateType= publicFuc.age(item.date,setting.formatDate)
     })
     newList = Object.values(publicFuc.groupByDateType(pictureList,'dateType'));
+    newList = publicFuc.sortObjectsByDate(newList)
     let sendObj = null
     if (pictureList.length > 0) {
         sendObj = {

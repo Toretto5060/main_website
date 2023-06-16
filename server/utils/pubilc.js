@@ -1,10 +1,10 @@
-function age(date) {
+function age(date,date2) {
     const oneDay = 24 * 60 * 60 * 1000; // 一天的毫秒数
     const oneMonth = 30.4375 * oneDay; // 一个月的平均毫秒数（按30.4375天计算）
     const oneYear = 365.25 * oneDay; // 一年的平均毫秒数（按365.25天计算）
 
     // 计算日期差值
-    const diff = Math.abs(new Date().getTime() - new Date(date).getTime());
+    const diff = Math.abs(new Date(date).getTime() - new Date(date2).getTime());
 
     // 计算天数、月数和年数
     const days = Math.floor(diff / oneDay);
@@ -15,6 +15,33 @@ function age(date) {
     return dateType;
 }
 
+/**
+ * 文件遍历方法
+ * @param array 需要遍历的数组
+ * 对数组中的对象进行排序，根据 dateType 和 child 进行从小到大排序
+ */
+
+function sortObjectsByDate(array) {
+    return array.sort((a, b) => {
+        // 将 dateType 是“未满月”的视为最小值，其余按照字符串从小到大排序
+        const aIsNotFullMonth = a.dateType === '未满月';
+        const bIsNotFullMonth = b.dateType === '未满月';
+        if (aIsNotFullMonth && !bIsNotFullMonth) {
+            return -1;
+        }
+        if (!aIsNotFullMonth && bIsNotFullMonth) {
+            return 1;
+        }
+        // 按照 dateType 进行排序，如果相同，则按照 child 的第一个元素的 date 进行排序
+        const compareResult = a.dateType.localeCompare(b.dateType);
+        if (compareResult === 0 && a.child.length > 0 && b.child.length > 0) {
+            const dateA = new Date(a.child[0].date);
+            const dateB = new Date(b.child[0].date);
+            return dateA.getTime() - dateB.getTime();
+        }
+        return compareResult;
+    });
+}
 
 /**
  * 文件遍历方法
@@ -38,4 +65,4 @@ function groupByDateType(array, keyName) {
     }, {});
 }
 
-module.exports = { age, groupByDateType }
+module.exports = { age, groupByDateType, sortObjectsByDate }

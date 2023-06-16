@@ -3,8 +3,8 @@ const setting = {
     linkFolder:'/public/static',  //  与⬇软链连接路径
 
     filePath: "C:\\Users\\zhangLei\\Desktop\\test",  // 查找路径
-    reg: /\.(jpg|jpeg|MOV|mp4|HEIC|txt)$/,   // 查找图片格式
-    formatDate:'2022-10-28',
+    reg: /\.(jpg|jpeg|MOV|mp4|HEIC)$/,   // 查找图片格式
+    formatDate:'2022-10-28 10:00:00',
     mysql: {
         host: 'localhost', // 新建数据库连接时的 主机名或ID地址 内容
         user: 'root',
