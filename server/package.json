@@ -4,6 +4,8 @@
     "exif-parser": "^0.1.12",
     "express": "^4.18.2",
     "fs": "^0.0.1-security",
+    "http": "^0.0.1-security",
+    "https": "^1.0.0",
     "moment": "^2.29.4",
     "mysql": "^2.18.1",
     "node-exiftool": "^2.3.0",

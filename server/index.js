@@ -4,6 +4,7 @@ const path = require('path');
 const express = require('express');
 const app = express();
 const setting = require('./setting');
+
 // 各板块api
 const indexApi = require('./api/indexApi');
 const pictureList = require('./src/findPicture');

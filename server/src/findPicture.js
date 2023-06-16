@@ -3,6 +3,7 @@ const path = require('path');
 const moment = require('moment');   // nodejs时间格式化
 const setting = require('../setting');
 const ExifParser = require('exif-parser');
+const sendMessage = require('./send_gotify');
 
 /**
  * 文件遍历方法
@@ -79,14 +80,28 @@ fs.writeFile('./storage/pictrueList.json', JSON.stringify(protData), (err) => {
     console.log('Data has been written to file');
 });
 
+
 // 监听文件夹变动
+let lastSendMessageTime = 0;
 fs.watch(setting.filePath, { recursive: true }, (eventType, filename) => {
     protData = fileDisplay(setting.filePath);
     fs.writeFile('./storage/pictrueList.json', JSON.stringify(protData), (err) => {
         if (err) throw err;
-        console.log('Data has been written to file');
     });
     module.exports = protData
+    if (eventType != "change") {
+        const now = new Date().getTime();
+        if (now - lastSendMessageTime >= 10 * 60 * 1000) {
+            // 如果距离上一次发送消息已经过去了10分钟，则发送消息并更新时间戳
+            sendMessage.send({
+                title: '数据变动',
+                message: setting.filePath.replace(/\\/g, '/') + '下数据发生变动，请注意！'
+            })
+            lastSendMessageTime = now;
+        }
+    }
+    // return
+
 });
 
 // 读取文件夹数据

@@ -5,6 +5,11 @@ const setting = {
     filePath: "C:\\Users\\zhangLei\\Desktop\\test",  // 查找路径
     reg: /\.(jpg|jpeg|MOV|mp4|HEIC)$/,   // 查找图片格式
     formatDate:'2022-10-28 10:00:00',
+
+
+    gotify_url:'',
+    gotify_token:'',
+
     mysql: {
         host: 'localhost', // 新建数据库连接时的 主机名或ID地址 内容
         user: 'root',
