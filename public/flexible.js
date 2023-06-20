@@ -1,5 +1,5 @@
-
-;(function(win, lib) {
+;
+(function(win, lib) {
     var doc = win.document;
     var docEl = doc.documentElement;
     var metaEl = doc.querySelector('meta[name="viewport"]');
@@ -35,12 +35,11 @@
     if (!dpr && !scale) {
         var isAndroid = win.navigator.appVersion.match(/android/gi);
         var isIPhone = win.navigator.appVersion.match(/iphone/gi);
-        var devicePixelRatio = win.devicePixelRatio;
-        if (isIPhone) {
-            // iOS下，对于2和3的屏，用2倍的方案，其余的用1倍方案
+        var devicePixelRato = win.devicePixelRatio;
+        if (isIPhone) { // iOS下，对于2和3的屏，用2倍的方案，其余的用1倍方案
             if (devicePixelRatio >= 3 && (!dpr || dpr >= 3)) {
                 dpr = 3;
-            } else if (devicePixelRatio >= 2 && (!dpr || dpr >= 2)){
+            } else if (devicePixelRatio >= 2 && (!dpr || dpr >= 2)) {
                 dpr = 2;
             } else {
                 dpr = 1;
@@ -66,12 +65,13 @@
         }
     }
 
-    function refreshRem(){
+    function refreshRem() {
         var width = docEl.getBoundingClientRect().width;
         if (width / dpr > 540) {
             width = width * dpr;
         }
-        var rem = width / 1920;
+
+        var rem = width / 19.2;
         docEl.style.fontSize = rem + 'px';
         flexible.rem = win.rem = rem;
     }

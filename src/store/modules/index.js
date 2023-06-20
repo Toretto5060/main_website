@@ -1,24 +1,25 @@
 import Vue from 'vue'
-
-// 首页数据映射
+//index模块中的数据，及相应的数据操作
 const state = {
-    area: [],
+
 }
 
-const mutations= {
-    SET_INDEX_STATE: (state, indexState) => {
-        indexState.area = mapArea(indexState.area)
-        for (let k in indexState) {
-            Vue.set(state, k, indexState[k])
-        }
-    }
+const mutations = {
+    // SET_MAIN_TITLE: (state, str) => {
+    //     state.menuState = str;
+    // },
+
+   
 }
 const actions = {
-    setIndexStates({ commit, state }, newState) {
-        return new Promise((resolve, reject) => {
-            commit("SET_INDEX_STATE", newState)
-        })
-    },
+
+
+    // setMainTitle({ commit, state }, str) {
+    //     return new Promise((resolve, reject) => {
+    //         commit("SET_MAIN_TITLE", str)
+    //     })
+    // },
+    //
 }
 
 export default {

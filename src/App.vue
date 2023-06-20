@@ -6,12 +6,8 @@
 
 <style lang="less">
 * {
-  margin: 0;
   padding: 0;
-}
-body {
-  font-family: 思源黑体;
+  margin:0;
 }
 
 </style>
-

@@ -19,7 +19,3 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
-dist_pro/js/chunk-vendors.4cbd9418.js.map
-dist_pro/
-dist_dev/
-*.gz

@@ -9,18 +9,6 @@ const setting = require('./setting');
 const indexApi = require('./api/indexApi');
 const pictureList = require('./src/findPicture');
 
-// 创建软链
-fs.symlink(setting.filePath, 'public', 'dir', (err) => {
-    if (err) {
-        // console.error(err);
-    } else {
-        console.log('Soft link created successfully!');
-    }
-});
-
-// 将此文件夹以服务的方式访问
-app.use(setting.linkFolder,express.static(path.join(__dirname, 'public')));
-
 
 // 采用设置所有均可访问的方法解决跨域问题
 app.all('*', function(req, res, next) {
@@ -34,6 +22,22 @@ app.all('*', function(req, res, next) {
         next();
     }
 });
+
+
+// 创建软链
+fs.symlink(setting.filePath, 'public', 'dir', (err) => {
+    if (err) {
+        // console.error(err);
+    } else {
+        console.log('Soft link created successfully!');
+    }
+});
+
+// 将此文件夹以服务的方式访问
+app.use(setting.linkFolder,express.static(path.join(__dirname, 'public')));
+
+
+
 
 
 app.use(bodyParser.json()); // 以json格式返回出去

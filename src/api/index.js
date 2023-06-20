@@ -1,10 +1,9 @@
 import axios from "./resouce";
-import store from "../store/index";
 
 
-export const get = () => {
-  return axios.get('/api/v2/index_show/data/1');
+export const getAgePicture = (params) => {
+    return axios.get('/api/index/age/getPicture', { params });
 };
-export const post = params => {
-  return axios.post(url, params);
-};
+// export const ChatGptCompletions = params => { // chatGpt文本对话
+//   return axios.post('/v1/completions', params);
+// };

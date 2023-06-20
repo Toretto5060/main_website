@@ -1,47 +1,29 @@
 <template>
   <div id="home">
-    <router-view />
+      <div class="content">
+        <router-view></router-view>
+      </div>
   </div>
 </template>
 
 <script>
-
 export default {
   name: "home",
+  components: {
+  },
   data(){
     return{
+
     }
   },
-  components:{
-  },
-  computed: {
-  },
-  watch: {
-  },
-  created(){
-  },
-  beforeDestroy() {
+  computed:{
 
   },
   mounted(){
-
-  },
-  beforeRouteEnter(to,from,next) {
-
-  },
-  beforeRouteLeave(to,from,next) {
-
   },
   methods:{
+
 
   }
 };
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style lang="less" scoped>
-
-  #home {
-    position: relative;
-  }
-</style>
