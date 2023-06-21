@@ -7,10 +7,10 @@ router.get('/age/getPicture', (req, res) => {
     const pictureList = require('../src/findPicture');
     let newList = null
     pictureList.map(item=>{
-        item.dateType= publicFuc.age(item.date,setting.formatDate)
+        item.title= publicFuc.age(item.date,setting.formatDate)
     })
-    newList = Object.values(publicFuc.groupByDateType(pictureList,'dateType'));
-    newList = publicFuc.sortObjectsByDate(newList)
+    newList = Object.values(publicFuc.groupByDateType(pictureList,'title'));
+    newList = publicFuc.sortObjectsByDate(newList,'title')
     let sendObj = null
     if (pictureList.length > 0) {
         sendObj = {

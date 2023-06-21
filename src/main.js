@@ -14,6 +14,13 @@ import Fragment from 'vue-fragment' // element导航菜单折叠文字不隐藏 
 Vue.config.productionTip = false;
 Vue.prototype.axios = axios;
 
+// 替换
+router.afterEach((to, from) => {
+    if (to.fullPath.split('&').length > 1) {
+        router.replace(to.fullPath.split('&')[0])
+    }
+});
+
 
 Vue.use(ElementUI);
 Vue.use(Fragment.Plugin)

@@ -21,11 +21,11 @@ function age(date,date2) {
  * 对数组中的对象进行排序，根据 dateType 和 child 进行从小到大排序
  */
 
-function sortObjectsByDate(array) {
+function sortObjectsByDate(array,key) {
     return array.sort((a, b) => {
         // 将 dateType 是“未满月”的视为最小值，其余按照字符串从小到大排序
-        const aIsNotFullMonth = a.dateType === '未满月';
-        const bIsNotFullMonth = b.dateType === '未满月';
+        const aIsNotFullMonth = a[key] === '未满月';
+        const bIsNotFullMonth = b[key] === '未满月';
         if (aIsNotFullMonth && !bIsNotFullMonth) {
             return -1;
         }
@@ -33,7 +33,7 @@ function sortObjectsByDate(array) {
             return 1;
         }
         // 按照 dateType 进行排序，如果相同，则按照 child 的第一个元素的 date 进行排序
-        const compareResult = a.dateType.localeCompare(b.dateType);
+        const compareResult = a[key].localeCompare(b[key]);
         if (compareResult === 0 && a.child.length > 0 && b.child.length > 0) {
             const dateA = new Date(a.child[0].date);
             const dateB = new Date(b.child[0].date);
