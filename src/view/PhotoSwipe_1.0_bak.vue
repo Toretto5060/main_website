@@ -192,29 +192,19 @@ export default {
       dom = [... dom];
       const [, ...newArr] = dom;
       newArr.map((item,index)=>{
-        if (data[index] && data[index].videoSrc && !item.querySelector('.video')) {
+        if (data[index] && data[index].videoSrc && !item.querySelector('.playVideo')) {
           if (item.querySelector('.pswp__zoom-wrap') && item.querySelector('.pswp__zoom-wrap').querySelector('.pswp__img')) {
               let pswpImg = item.querySelector('.pswp__zoom-wrap').querySelector('.pswp__img')
               let videoNode = {
                 type:'video',
                 props:{
                   class:'video',
-                  controls: true,
-
                   src: data[index].videoSrc,
                   style: 'width:' + pswpImg.width +'px;height:' + pswpImg.height + 'px'
                 }
               }
-            let imgList = item.querySelector('.pswp__zoom-wrap').getElementsByTagName('img')
-            imgList = [... imgList]
-            imgList.map(items=>{
-              items.remove()
-            })
+            pswpImg.remove()
             item.querySelector('.pswp__zoom-wrap').appendChild(this.createElement(videoNode));
-          }
-        } else {
-          if (item.querySelector('.video') && !item.querySelector('.video').paused) {
-              item.querySelector('.video').pause();
           }
         }
       })
@@ -238,7 +228,6 @@ export default {
         ],
         galleryUID: "1",
         maxSpreadZoom:2.5,
-        maxScaleRatio: 1,
         getThumbBoundsFn:  (index)=> {
           var  pageYScroll = window.pageYOffset || document.documentElement.scrollTop
           return {x: rect.left, y: rect.top + pageYScroll, w: rect.width};
@@ -287,9 +276,8 @@ export default {
           this.settransition()
         });
 
-        setTimeout(()=>{
-          this.apendVideo(items)
-        },500)
+
+        this.apendVideo(items)
         // 监听 图片切换之前触发 事件
         this.gallery.listen('beforeChange', ()=> {
           this.apendVideo(items)
@@ -314,7 +302,6 @@ export default {
 .pswp__caption {
   z-index: 9999 !important;
 }
-
 
 
 

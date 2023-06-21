@@ -6,7 +6,8 @@
         <div style="float:left;margin-inline-start:0px;margin-inline-end:0px;"  v-for="(item,index) in pictureList" :key="index">
             <!-- 图片处理 -->
             <div v-if="!/\.(mp4|webm|ogv|mov|avi|wmv|flv)$/i.test(item.child[0].src)" @click="showPhoto(item,index)">
-              <img   :id="'img' + index" :src="changeImgSrc(item.child[0].src)" draggable="false" v-if="item.child[0].src.indexOf('HEIC') == -1"  style="height:100%;border-radius: 5px;"  v-on:load="loadImgSize($event)"/>
+<!--              v-if="item.child[0].src.indexOf('HEIC') == -1"-->
+              <img   :id="'img' + index" :src="changeImgSrc(item.child[0].src)" draggable="false" v-on:error="imgerror(item.child[0].src)"  style="height:100%;border-radius: 5px;"  v-on:load="loadImgSize($event)"/>
 <!--              <img   :id="'img' + index" draggable="false"  v-else  style="height:100%;border-radius: 5px;"  v-on:load="loadImgSize($event)"/>-->
             </div>
 
@@ -55,6 +56,10 @@ export default {
       this.postItem = item.child
       // ract 当前点击img的位置  用于关闭图片预览缩小动画   data 需要显示的图片/视频数组
       this.$refs.zeroPhoto.openPhoto(event.target.getBoundingClientRect(),item.child)
+    },
+    imgerror(src) {
+      // console.log(src)
+      event.target.src = require('../assets/img_error.jpg')
     },
     getPicture() {
       getAgePicture().then(res=>{

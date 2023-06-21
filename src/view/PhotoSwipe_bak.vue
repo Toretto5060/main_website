@@ -192,30 +192,49 @@ export default {
       dom = [... dom];
       const [, ...newArr] = dom;
       newArr.map((item,index)=>{
-        if (data[index] && data[index].videoSrc && !item.querySelector('.video')) {
+        if (data[index] && data[index].videoSrc && !item.querySelector('.playVideo')) {
+          const screenWidth = window.screen.width;
+          const screenHeight = window.screen.height;
+          let node = {
+            type:'div',
+            props:{
+              class:'playVideo',
+              style:'width: 150px;' +
+                  'height: 150px;' +
+                  'position: absolute;' +
+                  'top:' +(screenHeight/2 - 75) +'px;'+
+                  'left:'+ (screenWidth/2 - 75) +'px;'+
+                  'background:url(' + require('../assets/play.png') + ')  no-repeat;'+
+                  'background-size: 100% 100%;'+
+                  'z-index: 999;' +
+                  'cursor: pointer;'
+            }
+          }
+          item.appendChild(this.createElement(node));
+
           if (item.querySelector('.pswp__zoom-wrap') && item.querySelector('.pswp__zoom-wrap').querySelector('.pswp__img')) {
               let pswpImg = item.querySelector('.pswp__zoom-wrap').querySelector('.pswp__img')
               let videoNode = {
                 type:'video',
                 props:{
                   class:'video',
-                  controls: true,
-
                   src: data[index].videoSrc,
-                  style: 'width:' + pswpImg.width +'px;height:' + pswpImg.height + 'px'
+                  style:"display:none;transform:" + item.querySelector('.pswp__zoom-wrap').style.transform.split('scale')[0] + ';width:' + pswpImg.width +'px;height:' + pswpImg.height + 'px'
                 }
               }
-            let imgList = item.querySelector('.pswp__zoom-wrap').getElementsByTagName('img')
-            imgList = [... imgList]
-            imgList.map(items=>{
-              items.remove()
-            })
-            item.querySelector('.pswp__zoom-wrap').appendChild(this.createElement(videoNode));
+              item.appendChild(this.createElement(videoNode));
           }
-        } else {
-          if (item.querySelector('.video') && !item.querySelector('.video').paused) {
-              item.querySelector('.video').pause();
-          }
+
+
+
+          item.querySelector('.playVideo').addEventListener('click', ()=> {
+            item.querySelector('.pswp__zoom-wrap').style.display = "none"
+            item.querySelector('.playVideo').style.display = "none"
+
+            item.querySelector('.video').style.display = "block"
+            item.querySelector('.video').play()
+
+          });
         }
       })
     },
@@ -238,7 +257,6 @@ export default {
         ],
         galleryUID: "1",
         maxSpreadZoom:2.5,
-        maxScaleRatio: 1,
         getThumbBoundsFn:  (index)=> {
           var  pageYScroll = window.pageYOffset || document.documentElement.scrollTop
           return {x: rect.left, y: rect.top + pageYScroll, w: rect.width};
@@ -287,9 +305,8 @@ export default {
           this.settransition()
         });
 
-        setTimeout(()=>{
-          this.apendVideo(items)
-        },500)
+
+        this.apendVideo(items)
         // 监听 图片切换之前触发 事件
         this.gallery.listen('beforeChange', ()=> {
           this.apendVideo(items)
@@ -314,7 +331,6 @@ export default {
 .pswp__caption {
   z-index: 9999 !important;
 }
-
 
 
 
