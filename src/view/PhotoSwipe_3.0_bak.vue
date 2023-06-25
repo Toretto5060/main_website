@@ -213,7 +213,7 @@ export default {
       dom = [... dom];
       let domImg = dom[this.clickNum].children[0].children
       domImg = [... domImg]
-
+      
       clearTimeout(this.timerOut)
       this.timerOut = null
       let domObj = this.findThisData(data,'src',domImg[0].src)
