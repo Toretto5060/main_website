@@ -195,13 +195,13 @@ export default {
     // 防止路径中存在中文被转译
     encodeChineseInUrl(url) {
       let chineseRegexp = /[\u4e00-\u9fa5]+/;
+      let encodedUrl = encodeURI(url);
 
-      let chineseMatch = url.match(chineseRegexp);
-      if (chineseMatch) {
-        let encodedChinese = encodeURIComponent(chineseMatch[0]);
-        url = url.replace(chineseMatch[0], encodedChinese);
-      }
-      return url;
+      let chinesePart = encodedUrl.match(chineseRegexp);
+      let encodedChinesePart = encodeURIComponent(chinesePart);
+
+      let decodedUrl = encodedUrl.replace(chinesePart, encodedChinesePart);
+      return decodedUrl;
     },
     findThisData(arr, objKey, fieldValue) {
       return arr.find((obj)=> {
@@ -213,15 +213,31 @@ export default {
       dom = [... dom];
       let domImg = dom[this.clickNum].children[0].children
       domImg = [... domImg]
-
-      clearTimeout(this.timerOut)
-      this.timerOut = null
       let domObj = this.findThisData(data,'src',domImg[0].src)
+
       if (domObj.videoSrc) {
-        this.timerOut = setTimeout(()=>{
-          this.apendVideoDom(domObj,[... dom[this.clickNum].children[0].children])
-        },300)
-        // console.log(domObj)
+        let playIcon = {
+          type:'div',
+          props:{
+            class:'playing',
+            style: 'transition: background-color 0.3s ease;'
+          },
+          children:[{
+            type:'img',
+            props:{
+              class:'playImg',
+              src: require('../assets/play.png')
+            }
+          }]
+        }
+        if (!dom[this.clickNum].querySelector('.playing') && !dom[this.clickNum].querySelector('.video')) {
+          dom[this.clickNum].appendChild(this.createElement(playIcon))
+          dom[this.clickNum].querySelector('.playImg').addEventListener('click', ()=> {
+            let domObj = this.findThisData(data,'src',domImg[0].src)
+            this.apendVideoDom(domObj,[... dom[this.clickNum].children[0].children])
+            dom[this.clickNum].querySelector('.playing').remove()
+          });
+        }
       }
     },
     apendVideoDom(nowData,item) {
@@ -234,6 +250,7 @@ export default {
               props:{
                 class:'video',
                 controls: true,
+                autoPlay: true,
                 src: nowData.videoSrc,
                 style: 'width:' + items.width + 'px;height:' + items.height + 'px'
               }
@@ -247,6 +264,28 @@ export default {
         })
 
     },
+    throttle(func, wait,immediate) {
+      let timer;
+
+      return function(...args) {
+        const context = this;
+
+        if (timer) {
+          clearTimeout(timer);
+        }
+
+        if (immediate && !timer) {
+          func.apply(context, args);
+        }
+
+        timer = setTimeout(() => {
+          timer = null;
+          if (!immediate) {
+            func.apply(context, args);
+          }
+        }, wait);
+      };
+    },
     /**
      * 父组件调用初始化图片弹出层
      * @param rect 父组件点击图片弹出预览的 rect 使用getBoundingClientRect() 获取
@@ -259,14 +298,9 @@ export default {
           items;
       // 构建 options 结构
       options = {
-        shareButtons: [
-          {id:'wechat', label:'分享微信', url:'#'},
-          {id:'weibo', label:'新浪微博', url:'#'},
-          {id:'download', label:'保存图片', url:'{{raw_image_url}}', download:true}
-        ],
-        galleryUID: "1",
-        maxSpreadZoom:2.5,
-        maxScaleRatio: 1,
+        showHideOpacity: true,
+        preload: 5,
+        closeOnScroll: false,
         getThumbBoundsFn:  (index)=> {
           var  pageYScroll = window.pageYOffset || document.documentElement.scrollTop
           return {x: rect.left, y: rect.top + pageYScroll, w: rect.width};
@@ -299,9 +333,11 @@ export default {
         // 所有 Promise 已经 resolved，这里可以对 items 进行处理
         items = data
         gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items,options);
-        gallery.init();
 
+        gallery.init();
         this.gallery = gallery
+
+
 
 
         // 左右箭头click事件监听
@@ -347,8 +383,21 @@ export default {
           this.apendVideoIcon(items)
         },0)
 
+
+
+
+        this.gallery.listen('preventDragEvent', (e, isDown, PreventObj)=> {
+        });
+
+
+        // 监听 图片切换之后触发 事件
+        this.gallery.listen('afterChange', (index)=> {
+          this.apendVideoIcon(items)
+        });
+
+
         // 监听 图片切换之前触发 事件
-        this.gallery.listen('beforeChange', (index,event)=> {
+        this.gallery.listen('beforeChange', (index)=> {
           this.stopVideo()
           if (index < -1) {
             index = 0
@@ -364,15 +413,29 @@ export default {
             this.clickNum = 2
           }
           this.apendVideoIcon(items)
+
         });
+
+        document.addEventListener('wheel', this.throttle((e)=> {
+          if (this.gallery) {
+            const delta = e.deltaY; // 滚动的距离（单位：像素）
+            this.settransition()
+            if (delta > 0) {
+              this.gallery.next()
+            } else {
+              this.gallery.prev()
+            }
+          }
+        },200, true));
 
         // 监听组件关闭
         this.gallery.listen('close', ()=> {
-          this.gallery.goTo(0)
+          // this.gallery.goTo(0)
           this.stopVideo()
           if (this.isPlaying) {
             this.stop();
           }
+          this.gallery = null
         });
 
 
@@ -382,13 +445,54 @@ export default {
   },
 }
 </script>
-<style>
+<style lang="less">
+.pswp {
+  .playing {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+    background-color: rgba(0,0,0,0.4);
+    img {
+      display: block;
+      width: 100px;
+      height: 100px;
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      margin: auto;
+      //transform: translate(-50%,-50%);
+      cursor: pointer;
+      opacity: 0.6;
+      transition: all 0.3s ease;
+    }
+    img:hover {
+      opacity: 1;
+      transition: all 0.3s ease;
+      transform-origin: center;
+      transform: scale(1.3);
+    }
+    .fullscreen {
+      z-index: 9999;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      transform: scale(1.5);
+    }
+  }
+  .pswp__caption {
+    z-index: 9999 !important;
+  }
 
-.pswp__caption {
-  z-index: 9999 !important;
 }
-
-
-
-
 </style>

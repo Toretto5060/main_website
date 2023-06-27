@@ -70,8 +70,11 @@
         if (width / dpr > 540) {
             width = width * dpr;
         }
-
-        var rem = width / 19.2;
+        if (width > 800) {
+            var rem = width / 19.2;
+        } else {
+            var rem = width / 4;
+        }
         docEl.style.fontSize = rem + 'px';
         flexible.rem = win.rem = rem;
     }
