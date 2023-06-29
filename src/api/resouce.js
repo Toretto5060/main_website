@@ -25,7 +25,7 @@ Axiso.interceptors.response.use(
         }
     },
     error => {
-        if (error.response.status) {
+        if (error.response && error.response.status) {
             switch (error.response.status) {
                 case 404:
                     break;

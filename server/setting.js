@@ -1,6 +1,7 @@
 const setting = {
     port: 3000,
-    linkFolder:'/public/static',  //  与⬇软链连接路径
+    currentPath:'',
+    linkFolder:'/sourcePublic/static',  //  与⬇软链连接路径
 
     filePath: "C:\\Users\\zhangLei\\Desktop\\test",  // 查找路径
     reg: /\.(jpg|jpeg|png|MOV|mp4|HEIC)$/,   // 查找图片格式

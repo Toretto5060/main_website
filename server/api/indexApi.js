@@ -4,8 +4,10 @@ const publicFuc = require('../utils/pubilc');
 const setting = require('../setting');
 
 router.get('/age/getPicture', (req, res) => {
+
     const pictureList = require('../src/findPicture');
     let newList = null
+
     pictureList.map(item=>{
         item.title= publicFuc.age(item.date,setting.formatDate)
     })

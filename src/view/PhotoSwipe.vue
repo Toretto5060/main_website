@@ -240,6 +240,7 @@ export default {
         }
       }
     },
+
     apendVideoDom(nowData,item) {
       let dom = document.getElementsByClassName('pswp__item')
       dom = [... dom];
@@ -296,16 +297,18 @@ export default {
           gallery,
           options,
           items;
+
       // 构建 options 结构
       options = {
         showHideOpacity: true,
-        preload: 5,
+        cache: 5,
+        virtual: true,
         closeOnScroll: false,
+        preload: true,
         getThumbBoundsFn:  (index)=> {
           var  pageYScroll = window.pageYOffset || document.documentElement.scrollTop
           return {x: rect.left, y: rect.top + pageYScroll, w: rect.width};
         },
-
       };
 
       // 获取图片真实宽高 用于预览
@@ -337,110 +340,108 @@ export default {
         gallery.init();
         this.gallery = gallery
 
-
-
-
-        // 左右箭头click事件监听
-        const leftArrow = document.querySelector('.pswp__button--arrow--left');
-        const rightArrow = document.querySelector('.pswp__button--arrow--right');
-
-        leftArrow.addEventListener('click', ()=> {
-          this.stop();
-          this.settransition()
-        });
-
-        rightArrow.addEventListener('click', ()=> {
-          this.stop();
-          this.settransition()
-        });
-
-        // 监听移入事件
-        leftArrow.addEventListener('mouseover', ()=> {
-            this.settransition()
-        });
-
-        rightArrow.addEventListener('mouseover', ()=> {
-          this.settransition()
-        });
-
-
-        // 监听移出事件
-        leftArrow.addEventListener('mouseout', ()=> {
-          setTimeout(()=>{
-            this.cleartransition()
-          },300)
-        });
-
-        rightArrow.addEventListener('mouseout', ()=> {
-          setTimeout(()=>{
-            this.cleartransition()
-          },300)
-        });
-
-
-        setTimeout(()=>{
-          this.clickNum = 1
-          this.apendVideoIcon(items)
-        },0)
-
-
-
-
-        this.gallery.listen('preventDragEvent', (e, isDown, PreventObj)=> {
-        });
-
-
-        // 监听 图片切换之后触发 事件
-        this.gallery.listen('afterChange', (index)=> {
-          this.apendVideoIcon(items)
-        });
-
-
-        // 监听 图片切换之前触发 事件
-        this.gallery.listen('beforeChange', (index)=> {
-          this.stopVideo()
-          if (index < -1) {
-            index = 0
-          }
-          if (index > 1) {
-            index = 0
-          }
-          this.clickNum = this.clickNum + index
-          if (this.clickNum > 2) {
-            this.clickNum = 0
-          }
-          if (this.clickNum < 0) {
-            this.clickNum = 2
-          }
-          this.apendVideoIcon(items)
-
-        });
-
-        document.addEventListener('wheel', this.throttle((e)=> {
-          if (this.gallery) {
-            const delta = e.deltaY; // 滚动的距离（单位：像素）
-            this.settransition()
-            if (delta > 0) {
-              this.gallery.next()
-            } else {
-              this.gallery.prev()
-            }
-          }
-        },200, true));
-
-        // 监听组件关闭
-        this.gallery.listen('close', ()=> {
-          // this.gallery.goTo(0)
-          this.stopVideo()
-          if (this.isPlaying) {
-            this.stop();
-          }
-          this.gallery = null
-        });
-
-
+        this.listenFuc(items)
       });
     },
+    listenFuc(items) {
+      // 左右箭头click事件监听
+      const leftArrow = document.querySelector('.pswp__button--arrow--left');
+      const rightArrow = document.querySelector('.pswp__button--arrow--right');
+
+      leftArrow.addEventListener('click', ()=> {
+        this.stop();
+        this.settransition()
+      });
+
+      rightArrow.addEventListener('click', ()=> {
+        this.stop();
+        this.settransition()
+      });
+
+      // 监听移入事件
+      leftArrow.addEventListener('mouseover', ()=> {
+        this.settransition()
+      });
+
+      rightArrow.addEventListener('mouseover', ()=> {
+        this.settransition()
+      });
+
+
+      // 监听移出事件
+      leftArrow.addEventListener('mouseout', ()=> {
+        setTimeout(()=>{
+          this.cleartransition()
+        },300)
+      });
+
+      rightArrow.addEventListener('mouseout', ()=> {
+        setTimeout(()=>{
+          this.cleartransition()
+        },300)
+      });
+
+
+      setTimeout(()=>{
+        this.clickNum = 1
+        this.apendVideoIcon(items)
+      },0)
+
+
+
+
+      this.gallery.listen('preventDragEvent', (e, isDown, PreventObj)=> {
+      });
+
+
+      // 监听 图片切换之后触发 事件
+      this.gallery.listen('afterChange', (index)=> {
+        this.apendVideoIcon(items)
+      });
+
+
+      // 监听 图片切换之前触发 事件
+      this.gallery.listen('beforeChange', (index)=> {
+        this.stopVideo()
+        if (index < -1) {
+          index = 0
+        }
+        if (index > 1) {
+          index = 0
+        }
+        this.clickNum = this.clickNum + index
+        if (this.clickNum > 2) {
+          this.clickNum = 0
+        }
+        if (this.clickNum < 0) {
+          this.clickNum = 2
+        }
+        this.apendVideoIcon(items)
+
+      });
+
+      document.addEventListener('wheel', this.throttle((e)=> {
+        if (this.gallery) {
+          const delta = e.deltaY; // 滚动的距离（单位：像素）
+          this.settransition()
+          if (delta > 0) {
+            this.gallery.next()
+          } else {
+            this.gallery.prev()
+          }
+        }
+      },200, true));
+
+      // 监听组件关闭
+      this.gallery.listen('close', ()=> {
+        // this.gallery.goTo(0)
+        this.stopVideo()
+        if (this.isPlaying) {
+          this.stop();
+        }
+        this.gallery = null
+      });
+    }
 
   },
 }
