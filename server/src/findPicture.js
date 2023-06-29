@@ -96,8 +96,45 @@ function getImageCreateTime(filePath) {
  *  监听文件夹变动
  *  若文件夹发生数据变动，则重新遍历文件夹，否则则使用/storage/pictrueList.json 中数据
  */
-
 let protData;
+
+
+// 用于存储上一次读取到的文件列表
+let previousFileList = [];
+function watchDirectory(callback) {
+    fs.readdir(setting.filePath, (err, files) => {
+        if (err) {
+            console.error(`无法读取目录：${err}`);
+            return;
+        }
+
+        // 检查新文件
+        files.forEach(file => {
+            if (!previousFileList.includes(file)) {
+                if (previousFileList.length > 0 && callback) {
+                    callback();
+                }
+            }
+        });
+
+        // 检查被删除的文件
+        previousFileList.forEach(prevFile => {
+            if (!files.includes(prevFile)) {
+                if (previousFileList.length > 0 && callback) {
+                    callback();
+                }
+            }
+        });
+
+        // 更新上一次的文件列表
+        previousFileList = files;
+
+        // 继续定时监控
+        setTimeout(() => watchDirectory(callback), 1000); // 每秒钟检查一次
+    });
+}
+
+
 fileDisplay(setting.filePath)
     .then((result) => {
         protData = result;
@@ -106,16 +143,35 @@ fileDisplay(setting.filePath)
             if (err) throw err;
             console.log('Data has been written to file');
         });
-
-        // 监听文件夹变动
         let lastSendMessageTime = 0;
-        fs.watch(setting.filePath, { recursive: true }, (eventType, filename) => {
-            protData = fileDisplay(setting.filePath);
-            fs.writeFile( setting.currentPath +'/storage/pictrueList.json', JSON.stringify(protData), (err) => {
-                if (err) throw err;
+
+        // 监听文件夹变动 (部分ndoe平台不支持fs watch，下方每秒定时遍历查看)
+        if (setting.fsWatch) {
+            fs.watch(setting.filePath, { recursive: true }, (eventType, filename) => {
+                protData = fileDisplay(setting.filePath);
+                fs.writeFile( setting.currentPath +'/storage/pictrueList.json', JSON.stringify(protData), (err) => {
+                    if (err) throw err;
+                });
+                module.exports = protData
+                if (eventType != "change") {
+                    const now = new Date().getTime();
+                    if (now - lastSendMessageTime >= 10 * 60 * 1000) {
+                        // 如果距离上一次发送消息已经过去了10分钟，则发送消息并更新时间戳
+                        sendMessage.send({
+                            title: '数据变动',
+                            message: setting.filePath.replace(/\\/g, '/') + '下数据发生变动，请注意！'
+                        })
+                        lastSendMessageTime = now;
+                    }
+                }
             });
-            module.exports = protData
-            if (eventType != "change") {
+        } else {
+            watchDirectory(()=>{
+                protData = fileDisplay(setting.filePath);
+                fs.writeFile( setting.currentPath +'/storage/pictrueList.json', JSON.stringify(protData), (err) => {
+                    if (err) throw err;
+                });
+                module.exports = protData
                 const now = new Date().getTime();
                 if (now - lastSendMessageTime >= 10 * 60 * 1000) {
                     // 如果距离上一次发送消息已经过去了10分钟，则发送消息并更新时间戳
@@ -125,8 +181,9 @@ fileDisplay(setting.filePath)
                     })
                     lastSendMessageTime = now;
                 }
-            }
-        });
+            })
+        }
+
 
         // 读取文件夹数据
         fs.readFile( setting.currentPath +'/storage/pictrueList.json', (err, data) => {

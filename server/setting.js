@@ -1,8 +1,7 @@
 const setting = {
     port: 3000,
-    currentPath:'',
+    fsWatch: true,
     linkFolder:'/sourcePublic/static',  //  与⬇软链连接路径
-
     filePath: "C:\\Users\\zhangLei\\Desktop\\test",  // 查找路径
     reg: /\.(jpg|jpeg|png|MOV|mp4|HEIC)$/,   // 查找图片格式
     formatDate:'2022-10-28 10:00:00',
@@ -10,6 +9,7 @@ const setting = {
 
     gotify_url:'',
     gotify_token:'',
+    currentPath:'',  // 动态获取当前路径（不用动）
 
     mysql: {
         host: 'localhost', // 新建数据库连接时的 主机名或ID地址 内容
