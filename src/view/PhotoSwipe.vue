@@ -304,7 +304,7 @@ export default {
         cache: 5,
         virtual: true,
         closeOnScroll: false,
-        preload: true,
+        preload: 2,
         getThumbBoundsFn:  (index)=> {
           var  pageYScroll = window.pageYOffset || document.documentElement.scrollTop
           return {x: rect.left, y: rect.top + pageYScroll, w: rect.width};

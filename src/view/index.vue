@@ -2,6 +2,7 @@
   <div id="index">
     <div>
       <zero-photo-swipe ref="zeroPhoto" :photos = "postItem" ></zero-photo-swipe>
+
       <div class="picList" ref="picList"  v-if="pictureList.length > 0">
         <div   v-for="(item,index) in pictureList" :key="index" class="picListItem" @click="showPhoto(item,index)">
           <div class="album">
@@ -12,13 +13,15 @@
             {{item.child.length}}
           </div>
           <!-- 图片处理 -->
-          <img   :id="'img' + index" :src="changeImgSrc(item.child[0].src)" :data-src="changeImgSrc(item.child[0].src)" draggable="false" v-if="!/\.(mp4|webm|ogv|mov|avi|wmv|flv)$/i.test(item.child[0].src)" v-on:error="imgerror(item.child[0].src)"   v-on:load="loadImgSize($event)"/>
+          <img   :id="'img' + index" :src="changeImgSrc(item.child[0].src)" draggable="false" v-if="!/\.(mp4|webm|ogv|mov|avi|wmv|flv)$/i.test(item.child[0].src)" v-on:error="imgerror(item.child[0].src)"   v-on:load="loadImgSize($event)"/>
           <!-- 视频处理 -->
-          <img :src="item.child[0].videoImg" :data-src="item.child[0].videoImg" v-else draggable="false" alt=""   v-on:load="loadImgSize($event)">
+          <img :src="item.child[0].videoImg" v-else draggable="false" alt=""   v-on:load="loadImgSize($event)">
           <div class="img_title">{{item.title}}</div>
         </div>
       </div>
 
+
+      <!-- 暂无数据dom-->
       <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%,-60%)" v-else>
         <el-empty :image-size="200"></el-empty>
       </div>
@@ -56,7 +59,8 @@ export default {
       listShow:false,
       doorOpenType:'container3D',
       input:'',
-      fontSize: Number(window.getComputedStyle(document.documentElement).fontSize.split('px')[0]/100)
+      fontSize: Number(window.getComputedStyle(document.documentElement).fontSize.split('px')[0]/100),
+      timerOut:null
     }
   },
   computed:{
@@ -88,6 +92,16 @@ export default {
       this.getPicture()
     }
 
+    this.$watch('pictureList', (newVal) => {
+      if (newVal) {
+        clearTimeout(this.timerOut)
+        this.timerOut = null
+        this.timerOut = setTimeout(()=>{
+          this.initJustifiedGallery();
+        },1000)
+      }
+    });
+
     window.onresize = () => {
       $(this.$refs.picList).justifiedGallery({
         lazyLoad: true,
@@ -109,6 +123,15 @@ export default {
         this.getPicture()
       }
     },
+    initJustifiedGallery() {
+      // 初始化justifiedGallery
+      $(this.$refs.picList).justifiedGallery({
+        lazyLoad: true,
+        // rowHeight: 240 + (240 * (this.fontSize - 1)),
+        rowHeight: 240,
+        margins: 15
+      });
+    },
     showPhoto(item) {
       this.postItem = item.child
       // ract 当前点击img的位置  用于关闭图片预览缩小动画   data 需要显示的图片/视频数组
@@ -123,6 +146,7 @@ export default {
         newArr.map(item=>{
           item.child.map((items,index)=>{
             items.src = process.env.VUE_APP_ChatGpt + items.src
+            // 获取视频缩略图
             if(/\.(mp4|webm|ogv|mov|avi|wmv|flv)$/i.test(items.src)) {
               let video = document.createElement("video");
               video.style = 'position:fixed; top: 9999px;left:9999px;z-index:-9999'
@@ -152,33 +176,26 @@ export default {
           })
         })
 
-
         this.pictureList = newArr
 
 
-
-
-
-
-
-
-        window.onload = () => {
-          $(this.$refs.picList).justifiedGallery({
-            lazyLoad: true,
-            rowHeight: 240,
-            margins: 15
-          });
-        }
-
-        this.$nextTick(()=>{
-          setTimeout(()=>{
-            $(this.$refs.picList).justifiedGallery({
-              lazyLoad: true,
-              rowHeight: 240 + (240 * (this.fontSize - 1)),
-              margins: 15
-            });
-          },300)
-        })
+        // window.onload = () => {
+        //   $(this.$refs.picList).justifiedGallery({
+        //     lazyLoad: true,
+        //     rowHeight: 240,
+        //     margins: 15
+        //   });
+        // }
+        //
+        // this.$nextTick(()=>{
+        //   setTimeout(()=>{
+        //     $(this.$refs.picList).justifiedGallery({
+        //       lazyLoad: true,
+        //       rowHeight: 240 + (240 * (this.fontSize - 1)),
+        //       margins: 15
+        //     });
+        //   },300)
+        // })
 
       })
     },
