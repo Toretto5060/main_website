@@ -4,6 +4,10 @@ const sharp = require('sharp');
 
 const ExifReader = require('exifreader');
 
+const { ExiftoolProcess } = require('node-exiftool');
+const exiftoolBin = require('dist-exiftool');
+const exiftool = new ExiftoolProcess(exiftoolBin);
+
 const sendMessage = require('./send_gotify');
 const setting = require('../setting');
 
@@ -12,7 +16,6 @@ const setting = require('../setting');
  * 文件遍历方法
  * @param filePath 需要遍历的文件路径
  */
-
 
 Date.prototype.format = function(fmt) {
     var weekArray = new Array("星期日","星期一", "星期二", "星期三", "星期四", "星期五", "星期六")
@@ -41,6 +44,7 @@ Date.prototype.format = function(fmt) {
     return fmt;
 }
 
+// 图片拍摄日期获取
 async function processExifData(filePath,callback) {
     try {
         const tags = await ExifReader.load(filePath, { expanded: true });
@@ -67,6 +71,40 @@ async function processExifData(filePath,callback) {
     }
 }
 
+
+// 视频拍摄日期获取
+async function getVideoCaptureDate(videoPath,callback) {
+    try {
+        await exiftool.open();
+        if (exiftool.isOpen) {
+            // 读取图片的元数据
+            const metadata = await exiftool.readMetadata(videoPath);
+            if (callback) {
+                let obj = {
+                    date: '',
+                }
+                if (metadata.data[0] && metadata.data[0].CreateDate) {
+                    const dateString = metadata.data[0].CreateDate.split(' ');
+                    const replacedDateStr = dateString[0].replace(/:/g, '-')
+                    // 与实际创建时间小8小时
+                    let dateTime =(new Date(replacedDateStr + ' ' + dateString[1]).getTime()) + (60 * 60 * 8 * 1000)
+                    obj.date = new Date(dateTime).format('yyyy-MM-dd HH:mm:ss')
+                }
+                callback(obj)
+            }
+            // 关闭 Exiftool 进程
+            if(exiftool.isOpen) {
+                exiftool.close();
+            }
+        } else {
+            throw new Error('Exiftool进程未能成功打开！');
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+
 function fileDisplay(folderPath, fileList) {
     if (!fileList) {
         fileList = [];
@@ -88,8 +126,7 @@ function fileDisplay(folderPath, fileList) {
                 date: getImageCreateTime(filePath),
                 location: null
             };
-
-            // 获取图片视频源创建时间及gps信息
+            // 获取图片源创建时间及gps信息
             if (/\.(jpg|jpeg|png|heic|heif|webp)$/.test(filePath)) {
                 return new Promise((resolve, reject) => {
                     processExifData(filePath, (tags) => {
@@ -99,7 +136,8 @@ function fileDisplay(folderPath, fileList) {
                         // 将图片源文件压缩到新文件夹。app.js中设置新文件夹以服务方式访问
                         if (/\.(jpg|jpeg|png)$/.test(filePath)) {
                             sharp(filePath)
-                                .gamma(3)
+                                .jpeg({ quality: 80, progressive: true })
+                                .gamma(2)
                                 .toFile(setting.currentPath + '/public/' + (filePath.split(setting.filePath)[1].replace(/\\/g, '/')).match(/\/([^/]+)$/)[1], (err, info) => {
                                     if (err) {
                                         reject(err);
@@ -109,12 +147,22 @@ function fileDisplay(folderPath, fileList) {
                                         resolve(obj);
                                     }
                                 });
-                        } else {
+                        }  else {
                             fileList.push(obj);
                             resolve(obj);
                         }
                     });
                 });
+            }
+            // 获取视频源创建时间及gps信息
+            else if(/\.(mp4|mov|avi|wmv|flv|mkv|webm)$/.test(filePath)) {
+                return new Promise((resolve, reject) => {
+                    getVideoCaptureDate(filePath,(tags)=>{
+                        obj.date = tags.date;
+                        fileList.push(obj);
+                        resolve(obj);
+                    })
+                })
             } else {
                 fileList.push(obj);
             }

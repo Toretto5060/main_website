@@ -1,6 +1,12 @@
 <template>
   <div id="index">
-    <div>
+    <div
+          class="index_content"
+          v-loading="loading"
+          element-loading-text="拼命加载中"
+          element-loading-spinner="el-icon-loading"
+          element-loading-background="rgba(0, 0, 0, 0.8)"
+    >
       <zero-photo-swipe ref="zeroPhoto" :photos = "postItem" ></zero-photo-swipe>
 
       <div class="picList" ref="picList"  v-if="pictureList.length > 0">
@@ -60,7 +66,8 @@ export default {
       doorOpenType:'container3D',
       input:'',
       fontSize: Number(window.getComputedStyle(document.documentElement).fontSize.split('px')[0]/100),
-      timerOut:null
+      timerOut:null,
+      loading: false
     }
   },
   computed:{
@@ -93,12 +100,14 @@ export default {
     }
 
     this.$watch('pictureList', (newVal) => {
+      this.loading = true
       if (newVal) {
         clearTimeout(this.timerOut)
         this.timerOut = null
         this.timerOut = setTimeout(()=>{
           this.initJustifiedGallery();
-        },1000)
+          this.loading = false
+        },1500)
       }
     });
 
@@ -177,26 +186,6 @@ export default {
         })
 
         this.pictureList = newArr
-
-
-        // window.onload = () => {
-        //   $(this.$refs.picList).justifiedGallery({
-        //     lazyLoad: true,
-        //     rowHeight: 240,
-        //     margins: 15
-        //   });
-        // }
-        //
-        // this.$nextTick(()=>{
-        //   setTimeout(()=>{
-        //     $(this.$refs.picList).justifiedGallery({
-        //       lazyLoad: true,
-        //       rowHeight: 240 + (240 * (this.fontSize - 1)),
-        //       margins: 15
-        //     });
-        //   },300)
-        // })
-
       })
     },
     /**
@@ -223,6 +212,13 @@ export default {
     height: 100%;
     overflow-x: hidden;
     overflow-y: auto;
+    .index_content {
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+    }
     .picList {
       width: 100%;
       height: 100%;
