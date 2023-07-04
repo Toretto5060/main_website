@@ -5,6 +5,8 @@ const express = require('express');
 const app = express();
 const setting = require('./setting');
 
+const publicFuc = require('./utils/pubilc');
+
 // 各板块api
 const indexApi = require('./api/indexApi');
 
@@ -22,11 +24,11 @@ fs.realpath(__dirname, (err, currentPath) => {
     // 采用设置所有均可访问的方法解决跨域问题
     app.all('*', function(req, res, next) {
         res.header('Access-Control-Allow-Origin', '*');
-        res.header('Access-Control-Allow-Headers', 'content-type');
+        res.header('Access-Control-Allow-Headers', '*');
         res.header('Access-Control-Allow-Methods', 'DELETE,PUT,POST,GET,OPTIONS');
 
         if (req.method.toLowerCase() === 'options') {
-            res.send(200); // 让options尝试请求快速结束
+            res.sendStatus(200); // 让options尝试请求快速结束
         } else {
             next();
         }
@@ -44,9 +46,11 @@ fs.realpath(__dirname, (err, currentPath) => {
         });
     }
 
+    // 所有请求接入token验证（包括静态资源文件夹）
+    app.use(publicFuc.authenticateToken);
+
     // 将源文件夹以服务的方式访问
     app.use(setting.linkFolder,express.static(path.join(__dirname, 'sourcePublic')));
-
 
     // 将压缩文件夹以服务的方式访问
     app.use(setting.linkFolder.replace('sourcePublic','public'),express.static(path.join(__dirname, 'public')));

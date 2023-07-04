@@ -1,3 +1,63 @@
+const jwt = require('jsonwebtoken');
+
+/**
+ * 创建并下发token
+ * @payload obj userName,password
+ * @secretKey string 自定义令牌
+ * @expiresIn string 过期时间  8h
+ * 对数组中的对象进行排序，根据 dateType 和 child 进行从小到大排序
+ */
+function issueToken(payload,secretKey, expiresIn) {
+    return jwt.sign(payload, 'lybabyApi' , { expiresIn });
+}
+
+/**
+ * 验证token
+ * @token  下发的token
+ * @secretKey string 自定义令牌
+ * 对数组中的对象进行排序，根据 dateType 和 child 进行从小到大排序
+ */
+
+const authenticateToken = (req, res, next) => {
+    let authHeader = req.headers['authorization'];
+    // 获取请求头中的Authorization字段
+
+    if (req.method == "GET") {
+        authHeader = "Bearer " + req.query.Authorization
+        console.log(req.url)
+    }
+    // 拆分Authorization字段，获取Token
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!['/lybaby/index/age/login'].includes(req._parsedUrl.pathname)) {
+        if (token == null) {
+            // 若Token不存在，返回401 Unauthorized状态码
+            return res.status(401).send({
+                code: -99999,
+                data:"",
+                message: "token字段缺省!"
+            });
+        }
+
+        // 验证Token是否有效
+        jwt.verify(token, 'lybabyApi', (err, user) => {
+            if (err) {
+                // 验证失败，返回403 Forbidden状态码
+                return res.status(403).send({
+                    code: -99998,
+                    data:"",
+                    message: "帐号或密码错误！"
+                });
+            }
+            // 验证成功，将用户存储在请求对象中，并继续处理下一个中间件或路由处理程序
+            req.user = user;
+            next();
+        });
+    } else {
+        next();
+    }
+};
+
+
 function age(date,date2) {
     const oneDay = 24 * 60 * 60 * 1000; // 一天的毫秒数
     const oneMonth = 30.4375 * oneDay; // 一个月的平均毫秒数（按30.4375天计算）
@@ -14,7 +74,6 @@ function age(date,date2) {
     // return { days, months, years };
     return dateType;
 }
-
 /**
  * 文件遍历方法
  * @param array 需要遍历的数组
@@ -23,7 +82,15 @@ function age(date,date2) {
 
 function sortObjectsByDate(array,key) {
     return array.sort((a, b) => {
-        // 将 dateType 是“未满月”的视为最小值，其余按照字符串从小到大排序
+        // 将 title 是“未满月”的视为最小值，其余按照字符串从小到大排序
+        const aIsNotFullToday = a[key] === '出生当天';
+        const bIsNotFullToday = b[key] === '出生当天';
+        if (aIsNotFullToday && !bIsNotFullToday) {
+            return -1;
+        }
+        if (!aIsNotFullToday && bIsNotFullToday) {
+            return 1;
+        }
         const aIsNotFullMonth = a[key] === '未满月';
         const bIsNotFullMonth = b[key] === '未满月';
         if (aIsNotFullMonth && !bIsNotFullMonth) {
@@ -32,14 +99,14 @@ function sortObjectsByDate(array,key) {
         if (!aIsNotFullMonth && bIsNotFullMonth) {
             return 1;
         }
-        // 按照 dateType 进行排序，如果相同，则按照 child 的第一个元素的 date 进行排序
+        // 按照 title 进行排序，如果相同，则按照 child 的第一个元素的 date 进行排序
         const compareResult = a[key].localeCompare(b[key]);
-        if (compareResult === 0 && a.child.length > 0 && b.child.length > 0) {
-            const dateA = new Date(a.child[0].date);
-            const dateB = new Date(b.child[0].date);
-            return dateA.getTime() - dateB.getTime();
-        }
+
         return compareResult;
+    }).map(obj => {
+        // 对每个对象的 child 数组按照 date 进行排序
+        obj.child.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        return obj;
     });
 }
 
@@ -65,4 +132,4 @@ function groupByDateType(array, keyName) {
     }, {});
 }
 
-module.exports = { age, groupByDateType, sortObjectsByDate }
+module.exports = { age, groupByDateType, sortObjectsByDate,issueToken,authenticateToken }

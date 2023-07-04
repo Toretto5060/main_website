@@ -14,6 +14,11 @@ import Fragment from 'vue-fragment' // element导航菜单折叠文字不隐藏 
 Vue.config.productionTip = false;
 Vue.prototype.axios = axios;
 
+if (localStorage.getItem('token')) {
+    store.dispatch('app/setToken',localStorage.getItem('token'))
+    store.dispatch('index/setDoorStatus',true)
+}
+
 // 替换
 router.afterEach((to, from) => {
     if (to.fullPath.split('&').length > 1) {

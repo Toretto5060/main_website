@@ -44,6 +44,16 @@ Date.prototype.format = function(fmt) {
     return fmt;
 }
 
+function formatPosition(str) {
+    let numList = str.match(/(\d+(\.\d+)?)/g);
+    let dd = parseFloat(numList[0]) + (parseFloat(numList[1]) / 60) + (parseFloat(numList[2]) / 3600);
+    if (str.indexOf('S') > -1  || str.indexOf('W') > -1) {
+        dd = -dd;
+    }
+    return dd;
+}
+
+
 // 图片拍摄日期获取
 async function processExifData(filePath,callback) {
     try {
@@ -82,6 +92,15 @@ async function getVideoCaptureDate(videoPath,callback) {
             if (callback) {
                 let obj = {
                     date: '',
+                    location: null
+                }
+
+                if (metadata.data[0] &&  metadata.data[0].GPSPosition) {
+                    let position = {
+                        Latitude: formatPosition(metadata.data[0].GPSLatitude),
+                        Longitude:formatPosition(metadata.data[0].GPSLongitude)
+                    }
+                    obj.location = position
                 }
                 if (metadata.data[0] && metadata.data[0].CreateDate) {
                     const dateString = metadata.data[0].CreateDate.split(' ');
@@ -159,6 +178,7 @@ function fileDisplay(folderPath, fileList) {
                 return new Promise((resolve, reject) => {
                     getVideoCaptureDate(filePath,(tags)=>{
                         obj.date = tags.date;
+                        obj.location = tags.location;
                         fileList.push(obj);
                         resolve(obj);
                     })

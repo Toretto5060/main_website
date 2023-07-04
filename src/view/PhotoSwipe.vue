@@ -314,7 +314,7 @@ export default {
       // 获取图片真实宽高 用于预览
       Promise.all(
           data.map(obj => {
-            if(/\.(mp4|webm|ogv|mov|avi|wmv|flv)$/i.test(obj.src)) {
+            if(/\.(mp4|webm|ogv|mov|avi|wmv|flv)$/i.test(obj.src.split('?')[0])) {
               // 如果为视频，则需要传递videoImg  为视频第一帧
               obj.videoSrc = obj.src
               obj.src  = obj.videoImg

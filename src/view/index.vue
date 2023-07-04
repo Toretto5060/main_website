@@ -19,7 +19,8 @@
             {{item.child.length}}
           </div>
           <!-- 图片处理 -->
-          <img   :id="'img' + index" :src="changeImgSrc(item.child[0].src)" draggable="false" v-if="!/\.(mp4|webm|ogv|mov|avi|wmv|flv)$/i.test(item.child[0].src)" v-on:error="imgerror(item.child[0].src)"   v-on:load="loadImgSize($event)"/>
+          <img   :id="'img' + index"  :src="changeImgSrc(item.child[0].src)" draggable="false" v-if="!/\.(mp4|webm|ogv|mov|avi|wmv|flv)$/i.test((item.child[0].src).split('?')[0])" v-on:error="imgerror(item.child[0].src)"   v-on:load="loadImgSize($event)"/>
+
           <!-- 视频处理 -->
           <img :src="item.child[0].videoImg" v-else draggable="false" alt=""   v-on:load="loadImgSize($event)">
           <div class="img_title">{{item.title}}</div>
@@ -35,8 +36,12 @@
 
 
     <div :class="doorOpenType" ref="container">
-      <div class="container_door" ref="container_door">
-        <el-input v-model="input" v-if="!listShow" @input="inputListen" placeholder="请输入口令" :maxlength="6"></el-input>
+      <div :class="'container_door ' + doorClass" ref="container_door">
+        <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm" v-if="!listShow">
+          <el-form-item  prop="input" :error="errorMsg">
+            <el-input type="password" v-model="ruleForm.input"  @input="inputListen" placeholder="请输入口令" :maxlength="8"></el-input>
+          </el-form-item>
+        </el-form>
         <div class="left-part" ref="leftPart">
         </div>
         <div class="right-part">
@@ -48,7 +53,7 @@
   </div>
 </template>
 <script>
-import { getAgePicture } from "../api/index"
+import { getAgePicture, loginInput} from "../api/index"
 
 import ZeroPhotoSwipe from "./PhotoSwipe.vue";
 import justifiedGallery from "@/utils/jquery.justifiedGallery";
@@ -60,14 +65,47 @@ export default {
   },
   data() {
     return {
+      doorClass:'close',
       pictureList: [],
       postItem:[],
       listShow:false,
-      doorOpenType:'container3D',
-      input:'',
+      doorOpenType:'container3D',  //container3D
+      ruleForm:{
+        input:'',
+      },
       fontSize: Number(window.getComputedStyle(document.documentElement).fontSize.split('px')[0]/100),
       timerOut:null,
-      loading: false
+      loading: false,
+      errorMsg:'',
+      rules: {
+        input: [
+          {
+            validator: (rule, value, callback) => {
+              if (value === '') {
+                callback(new Error('请输入口令'));
+              }
+              else if (value.length < 6) {
+                callback(new Error('口令长度不应小于6位'));
+              } else
+              {
+                callback();
+              }
+            },
+            trigger: 'change' }
+        ],
+      }
+    }
+  },
+  created() {
+    if (this.$store.getters.doorStatus) {
+      this.doorClass = "open"
+      this.listShow = true
+      this.ruleForm.input = ""
+      this.getPicture()
+      this.$nextTick(()=>{
+        this.$refs.container.style.zIndex = -1
+
+      })
     }
   },
   computed:{
@@ -83,23 +121,17 @@ export default {
         this.$refs.leftPart.addEventListener('transitionend', (event)=> {
           // 检查过渡属性是否为 left
           this.$refs.container.style.zIndex = -1
+          this.ruleForm.input = ""
         });
       } else {
-        this.$refs.container.style.zIndex = 9999
+        this.$refs.leftPart.addEventListener('transitionend', (event)=> {
+          // 检查过渡属性是否为 left
+          this.$refs.container.style.zIndex = 9999
+          this.ruleForm.input = ""
+        });
       }
-    }
-  },
-  mounted(){
-
-    if (sessionStorage.getItem('gogogo')) {
-      this.$refs.container_door.classList.add('open')
-      this.$refs.container.style.zIndex = -1
-      this.listShow = true
-      this.input = ""
-      this.getPicture()
-    }
-
-    this.$watch('pictureList', (newVal) => {
+    },
+    pictureList(newVal){
       this.loading = true
       if (newVal) {
         clearTimeout(this.timerOut)
@@ -109,8 +141,21 @@ export default {
           this.loading = false
         },1500)
       }
-    });
+    }
+  },
+  mounted(){
 
+    this.$store.watch((state, getters) => getters.doorStatus,() => {
+      if (this.$store.getters.doorStatus) {
+        this.doorClass = "open"
+        this.listShow = true
+        this.ruleForm.input = ""
+        this.getPicture()
+      } else {
+        this.doorClass = "close"
+        this.listShow = false
+      }
+    });
     window.onresize = () => {
       $(this.$refs.picList).justifiedGallery({
         lazyLoad: true,
@@ -122,15 +167,36 @@ export default {
   },
   methods:{
     inputListen() {
-
       // 口令验证成功调用
-      if (this.input.length  == 6) {
-        this.$refs.container_door.classList.add('open')
-        sessionStorage.setItem('gogogo',true)
-        this.listShow = true
-        this.input = ""
-        this.getPicture()
-      }
+      this.$refs['ruleForm'].validate((valid,fields) => {
+        if (valid) {
+          if (this.ruleForm.input.length < 8) {
+            return
+          }
+          this.loading = true
+          loginInput({password: this.ruleForm.input})
+              .then(res=>{
+                this.loading = false
+                if (res.code == 200) {
+                  this.$store.dispatch('app/setToken',res.data.token)
+                  localStorage.setItem('token',res.data.token)
+                  this.$store.dispatch('index/setDoorStatus',true)
+                }
+              })
+              .catch(err=>{
+                this.errorMsg = ""
+                this.loading = false
+                console.log(err)
+                this.$nextTick(()=>{
+                  this.errorMsg = err.message
+                })
+              })
+
+        } else {
+          return false;
+        }
+
+      });
     },
     initJustifiedGallery() {
       // 初始化justifiedGallery
@@ -144,32 +210,31 @@ export default {
     showPhoto(item) {
       this.postItem = item.child
       // ract 当前点击img的位置  用于关闭图片预览缩小动画   data 需要显示的图片/视频数组
+      console.log(item.child)
       this.$refs.zeroPhoto.openPhoto(event.target.getBoundingClientRect(),item.child)
     },
     imgerror(src) {
-      event.target.src = require('../assets/img_error.jpg')
+      // event.target.src = require('../assets/img_error.jpg')
     },
     getPicture() {
       getAgePicture().then(res=>{
         let newArr = res.data
-        newArr.map(item=>{
+        const promises = newArr.map(item=>{
           item.child.map((items,index)=>{
-            items.src = process.env.VUE_APP_ChatGpt + items.src
+            items.src = process.env.VUE_APP_ChatGpt + items.src + '?Authorization=' + this.$store.getters.token
+            items.sourceSrc = process.env.VUE_APP_ChatGpt + items.sourceSrc + '?Authorization=' + this.$store.getters.token
             // 获取视频缩略图
-            if(/\.(mp4|webm|ogv|mov|avi|wmv|flv)$/i.test(items.src)) {
+            if(/\.(mp4|webm|ogv|mov|avi|wmv|flv)$/i.test(items.src.split('?')[0])) {
               let video = document.createElement("video");
               video.style = 'position:fixed; top: 9999px;left:9999px;z-index:-9999'
               video.preload = 'metadata'
               video.currentTime = 1   //截取的视频第一秒作为图片
               video.src = items.src
-
               video.addEventListener('loadedmetadata', () => {
                 video.width = video.videoWidth
                 video.height = video.videoHeight
               });
-
               video.setAttribute('crossOrigin', 'anonymous');
-
               document.body.appendChild(video)
               video.onloadeddata =   ()=> {
                 let canvas = document.createElement('canvas')
@@ -184,7 +249,6 @@ export default {
             items.title = items.title  + " " + (items.src.split('/').pop().split('.')[0]) +' ( '+ items.date + ' ) '
           })
         })
-
         this.pictureList = newArr
       })
     },
@@ -199,6 +263,7 @@ export default {
 
       target.dataSize = `${x}x${y}`
       target.parentNode.setAttribute('data-size', `${x}x${y}`)
+      // this.initJustifiedGallery()
     }
   }
 }
@@ -402,6 +467,16 @@ export default {
 
 <style lang="less">
   #index {
+    .el-form {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+      z-index: 999;
+      .el-form-item__content {
+        margin-left: 0 !important;
+      }
+    }
     .el-input /deep/ .el-input__inner {
       border: none;
     }
@@ -413,18 +488,18 @@ export default {
       outline: 0 !important;
       border: none !important;
     }
-    .el-input {
-      width: 3rem;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      border: none !important;
-      transform: translate(-50%,-50%);
-      z-index: 9999;
+    //.el-input {
+    //  width: 3rem;
+    //  position: absolute;
+    //  top: 50%;
+    //  left: 50%;
+    //  border: none !important;
+    //  transform: translate(-50%,-50%);
+    //  z-index: 9999;
       input {
         text-align: center;
       }
-    }
+    //}
     ::placeholder {
       text-align: center;
     }

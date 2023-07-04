@@ -1,8 +1,7 @@
 //通过this.$store.getters获取相应的数据
 const getters = {
-    MenuState: state => state.app.menuState,
-    MenuList: state => state.app.menuList,
-
+    doorStatus: state => state.index.doorStatus,
+    token: state => state.app.token,
 }
 
 export default getters
