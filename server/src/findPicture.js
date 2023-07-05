@@ -213,38 +213,46 @@ function getImageCreateTime(filePath) {
  *  若文件夹发生数据变动，则重新遍历文件夹，否则则使用/storage/pictrueList.json 中数据
  */
 let protData;
-const chokidar = require('chokidar');
 
+// 获取文件夹大小
+function getFolderSizeSync(folderPath) {
+    let totalSize = 0;
 
-// 监听文件夹变动
-function watchFolderChanges(callback) {
-    const watcher = chokidar.watch(setting.currentPath + '/sourcePublic', {
-        ignored: /^.*[\\\/]@[^\\\/]*$/, // 忽略以点开头的文件和文件夹
-        persistent: true
-    });
-    let isReady = false; // 判断是否已经初始化完毕
-    watcher
-    .on('ready', () => {
-        isReady = true;
-    })
-    .on('add', (filePath) => {
-        if (!isReady) return; // 过滤掉初始加载阶段的文件
-        if (callback) {
-            callback(filePath)
-        }
-    })
-    .on('change', (filePath) => {
-        if (callback) {
-            callback(filePath)
-        }
-    })
-    .on('unlink', (filePath) => {
-        if (callback) {
-            callback(filePath)
-        }
-    });
+    try {
+        const files = fs.readdirSync(folderPath);
+
+        files.forEach((file) => {
+            const filePath = path.join(folderPath, file);
+            const stats = fs.statSync(filePath);
+
+            if (stats.isFile()) {
+                totalSize += stats.size;
+            } else if (stats.isDirectory()) {
+                totalSize += getFolderSizeSync(filePath);
+            }
+        });
+    } catch (error) {
+        console.error('获取文件夹大小出错：', error);
+    }
+
+    return totalSize;
 }
 
+let initialSize = getFolderSizeSync(setting.filePath);
+
+// 监听文件夹大小
+function watchFolderChanges(callback) {
+    const currentSize = getFolderSizeSync(setting.filePath);
+    if (currentSize !== initialSize) {
+        // 文件夹大小发生变化，执行相应操作
+        // 在这里可以添加你想要执行的代码
+        if (callback) {
+            callback()
+        }
+        // 更新初始文件夹大小
+        initialSize = currentSize;
+    }
+}
 
 fileDisplay(setting.filePath)
 .then((result) => {
@@ -253,8 +261,8 @@ fileDisplay(setting.filePath)
         if (err) throw err;
         console.log('Data has been written to file');
     });
-    let lastSendMessageTime = 0;
 
+    let lastSendMessageTime = 0;
     // 监听文件夹变动 (部分ndoe平台不支持fs watch，下方每秒定时遍历查看)
     if (setting.fsWatch) {
         fs.watch(setting.filePath, { recursive: true }, (eventType, filename) => {
@@ -280,25 +288,27 @@ fileDisplay(setting.filePath)
         });
     }
     else {
-        watchFolderChanges((file)=>{
-            fileDisplay(setting.filePath)
-            .then((result) => {
-                protData = result
-                fs.writeFile( setting.currentPath +'/storage/pictrueList.json', JSON.stringify(protData), (err) => {
-                    if (err) throw err;
-                });
-                module.exports = protData
-                const now = new Date().getTime();
-                if (now - lastSendMessageTime >= 10 * 60 * 1000) {
-                    // 如果距离上一次发送消息已经过去了10分钟，则发送消息并更新时间戳
-                    sendMessage.send({
-                        title: '数据变动',
-                        message: setting.filePath.replace(/\\/g, '/') + '下数据发生变动，请注意！'
-                    })
-                    lastSendMessageTime = now;
-                }
+        setInterval(()=>{
+            watchFolderChanges(()=>{
+                fileDisplay(setting.filePath)
+                .then((result) => {
+                    protData = result
+                    fs.writeFile( setting.currentPath +'/storage/pictrueList.json', JSON.stringify(protData), (err) => {
+                        if (err) throw err;
+                    });
+                    module.exports = protData
+                    const now = new Date().getTime();
+                    if (now - lastSendMessageTime >= 10 * 60 * 1000) {
+                        // 如果距离上一次发送消息已经过去了10分钟，则发送消息并更新时间戳
+                        sendMessage.send({
+                            title: '数据变动',
+                            message: setting.filePath.replace(/\\/g, '/') + '下数据发生变动，请注意！'
+                        })
+                        lastSendMessageTime = now;
+                    }
+                })
             })
-        });
+        }, setting.timeOutSpeed);
     }
 
     // 读取文件夹数据
