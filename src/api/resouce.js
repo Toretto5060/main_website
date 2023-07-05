@@ -39,7 +39,7 @@ Axiso.interceptors.response.use(
                     sessionStorage.clear()
                     localStorage.clear()
                     store.dispatch('app/setToken', '')
-                    // store.dispatch('index/setDoorStatus', false)
+                    store.dispatch('index/setDoorStatus', false)
                     break;
             }
         }

@@ -24,7 +24,6 @@ const authenticateToken = (req, res, next) => {
 
     if (req.method == "GET") {
         authHeader = "Bearer " + req.query.Authorization
-        console.log(req.url)
     }
     // 拆分Authorization字段，获取Token
     const token = authHeader && authHeader.split(' ')[1];
