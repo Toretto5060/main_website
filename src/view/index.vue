@@ -304,7 +304,7 @@ export default {
             float: right;
             height: 100%;
             margin-right: 0.05rem;
-            line-height: 0.25rem;
+            line-height: 0.26rem;
           }
           svg {
             width: 0.15rem;
@@ -314,19 +314,18 @@ export default {
           }
         }
         .img_title {
-            width: 90%;
+            width: 100%;
             height: 0.25rem;
-            line-height: 0.25rem;
+            line-height: 0.26rem;
             background: rgba(0,0,0,0.4);
             color: #fff;
             position: absolute;
             bottom: 0;
             left: 0;
-            padding-left: 5%;
-            padding-right: 5%;
+
             //font-weight: bold;
             font-size: 0.1rem;
-            //padding: 0 0.1rem
+            text-indent: 0.1rem;
         }
       }
       //.picListItem:hover {
