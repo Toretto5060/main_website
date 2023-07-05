@@ -1,5 +1,6 @@
 <template>
   <div id="index">
+    <zero-photo-swipe ref="zeroPhoto" :photos= "postItem" ></zero-photo-swipe>
     <div
           class="index_content"
           v-loading="loading"
@@ -8,7 +9,6 @@
           element-loading-spinner="el-icon-loading"
           element-loading-background="rgba(0, 0, 0, 0.4)"
     >
-      <zero-photo-swipe ref="zeroPhoto" :photos = "postItem" ></zero-photo-swipe>
 
 
       <div class="picList" ref="picList"  v-if="pictureList.length > 0">
@@ -36,8 +36,6 @@
         <el-empty :image-size="200"></el-empty>
       </div>
     </div>
-
-
     <div :class="doorOpenType" ref="container">
       <div :class="'container_door ' + doorClass" ref="container_door">
         <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm" v-if="!listShow">
@@ -51,8 +49,6 @@
         </div>
       </div>
     </div>
-
-
   </div>
 </template>
 <script>
