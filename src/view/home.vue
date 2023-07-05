@@ -28,6 +28,14 @@ export default {
 };
 </script>
 <style lang="less">
+  @font-face {
+    font-family: 'pangmen';
+    src: url('../utils/PangMenZhengDaoBiaoTiTi-1.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: 'biaotihei';
+    src: url('../utils/YouSheBiaoTiHei-2.ttf') format('truetype');
+  }
   #home {
     position: absolute;
     width: 100%;
@@ -36,6 +44,7 @@ export default {
     .content {
       width: 100%;
       height: 100%;
+      font-family: pangmen;
     }
   }
 </style>

@@ -295,7 +295,7 @@ export default {
           position: absolute;
           right: 0.05rem;
           bottom: 0;
-          font-weight: bold;
+          //font-weight: bold;
           z-index: 999;
           color: #fff;
           text-align: right;
@@ -324,7 +324,7 @@ export default {
             left: 0;
             padding-left: 5%;
             padding-right: 5%;
-            font-weight: bold;
+            //font-weight: bold;
             font-size: 0.1rem;
             //padding: 0 0.1rem
         }
