@@ -53,14 +53,13 @@
 </template>
 <script>
 import { getAgePicture, loginInput} from "../api/index"
-
 import ZeroPhotoSwipe from "./PhotoSwipe.vue";
 import justifiedGallery from "@/utils/jquery.justifiedGallery";
 
 export default {
   name: 'home',
   components: {
-    ZeroPhotoSwipe
+    ZeroPhotoSwipe,
   },
   data() {
     return {
@@ -192,6 +191,18 @@ export default {
       });
     },
     showPhoto(item) {
+      // let showList = []
+      // item.child.map(items=>{
+      //   showList.push(items.src)
+      // })
+      this.$hevueImgPreview({
+        imgTop: 100,
+        multiple: true,
+        nowImgIndex: 0,
+        imgList: item.child
+      })
+      // this.$preview.show(0, this.pictureList); // 打开图片预览
+      return
       this.postItem = item.child
       // ract 当前点击img的位置  用于关闭图片预览缩小动画   data 需要显示的图片/视频数组
       this.$refs.zeroPhoto.openPhoto(event.target.getBoundingClientRect(),item.child)
@@ -207,8 +218,8 @@ export default {
           item.child.map((items,index)=>{
             items.src = process.env.VUE_APP_ChatGpt + items.src + '?Authorization=' + this.$store.getters.token
             items.sourceSrc = process.env.VUE_APP_ChatGpt + items.sourceSrc + '?Authorization=' + this.$store.getters.token
-            // 获取视频缩略图
-            if(/\.(mp4|webm|ogv|mov|avi|wmv|flv)$/i.test(items.src.split('?')[0])) {
+            // // 获取child 第一个数组的 视频缩略图
+            if(index == 0 &&  /\.(mp4|webm|ogv|mov|avi|wmv|flv)$/i.test(items.src.split('?')[0])) {
               let video = document.createElement("video");
               video.style = 'position:fixed; top: 9999px;left:9999px;z-index:-9999'
               video.preload = 'metadata'
@@ -234,6 +245,8 @@ export default {
           })
         })
         this.pictureList = newArr
+      }).catch(err=>{
+        this.loading = false
       })
     },
     /**

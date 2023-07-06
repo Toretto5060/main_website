@@ -1,0 +1,72 @@
+@font-face {
+  font-family: "heimgfont"; /* Project id 1776686 */
+  src: url('iconfont.woff2?t=1635390861127') format('woff2'),
+       url('iconfont.woff?t=1635390861127') format('woff'),
+       url('iconfont.ttf?t=1635390861127') format('truetype');
+}
+
+.heimgfont {
+  font-family: "heimgfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+.heimg-iconguanbi1:before {
+  content: "\e608";
+}
+
+.heimg-iconiconfontzhizuobiaozhun023146:before {
+  content: "\e694";
+}
+
+.heimg-iconhelp:before {
+  content: "\e626";
+}
+
+.heimg-iconjiazaizhong:before {
+  content: "\e6b1";
+}
+
+.heimg-icontupianjiazaishibai:before {
+  content: "\ec0d";
+}
+
+.heimg-iconicon_arrow_right:before {
+  content: "\e60d";
+}
+
+.heimg-iconjiantouzuo:before {
+  content: "\e620";
+}
+
+.heimg-iconxuanzhuan:before {
+  content: "\e66f";
+}
+
+.heimg-iconxuanzhuan1:before {
+  content: "\e670";
+}
+
+.heimg-iconyuanshibili:before {
+  content: "\e86b";
+}
+
+.heimg-iconfangda:before {
+  content: "\e65d";
+}
+
+.heimg-iconsuoxiao:before {
+  content: "\e65e";
+}
+
+.heimg-iconquanping:before {
+  content: "\e698";
+}
+
+.heimg-iconguanbi:before {
+  content: "\e764";
+}
+

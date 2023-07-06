@@ -14,6 +14,10 @@ import Fragment from 'vue-fragment' // element导航菜单折叠文字不隐藏 
 Vue.config.productionTip = false;
 Vue.prototype.axios = axios;
 
+
+import hevueImgPreview from '@/components/hevue-img-preview'
+Vue.use(hevueImgPreview)
+
 if (localStorage.getItem('token')) {
     store.dispatch('app/setToken',localStorage.getItem('token'))
     store.dispatch('index/setDoorStatus',true)
@@ -25,6 +29,7 @@ router.afterEach((to, from) => {
         router.replace(to.fullPath.split('&')[0])
     }
 });
+
 
 
 Vue.use(ElementUI);
