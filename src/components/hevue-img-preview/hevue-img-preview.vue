@@ -11,26 +11,29 @@
     >
 
       <div class="he-img-wrap">
-        <!--图片加载loading-->
-        <div
-          class="heimgfont hevue-img-status-icon rotate-animation"
-          v-show="imgState === 1"
-        >
-          &#xe6b1;
-        </div>
 
-        <div class="playing" v-if="!videoPlaying && (imgState === 2 && imgList[imgIndex].video)">
-          <img src="./iconfont/play.png" alt=""  @click="playVideo">
-        </div>
+        <el-carousel :interval="4000" indicator-position="outside" arrow="never" :autoplay="false" :indicator-position="'none'"  ref="carousel" @change="carouselChange">
+          <el-carousel-item v-for="(items,index) in imgSrcList" :key="index">
 
-        <!--图片显示-->
-        <img
-          :src="imgurl"
-          ref="heImView"
-          @click.stop=""
-          v-show="imgState === 2 && !videoPlaying"
-          class="he-img-view"
-          :style="
+            <!--图片加载loading-->
+            <div
+                class="heimgfont hevue-img-status-icon rotate-animation"
+                v-show="items.imgState === 1"
+            >
+              &#xe6b1;
+            </div>
+            <!---视频播放按钮--->
+            <div class="playing" v-if="!videoPlaying && (items.imgState === 2 && items.video)">
+              <img src="./iconfont/play.png" alt=""  @click="playVideo">
+            </div>
+            <!--图片显示-->
+            <img
+                :src="items.imgurl"
+                ref="heImView"
+                @click.stop=""
+                v-show="items.imgState === 2 && !videoPlaying"
+                class="he-img-view"
+                :style="
             'transform: scale(' +
             imgScale +
             ') rotate(' +
@@ -42,17 +45,17 @@
             'px;' +
             maxWH
           "
-          @mousedown="addMove"
-          @touchstart="addMoveMobile"
-        />
-
-        <video
-            controls
-            autoplay
-            v-if="videoPlaying"
-            ref="video"
-            :src="videoSrc"
-            :style="
+                @mousedown="addMove"
+                @touchstart="addMoveMobile"
+            />
+            <!---视频播放--->
+            <video
+                controls
+                autoplay
+                v-if="videoPlaying"
+                ref="video"
+                :src="videoSrc"
+                :style="
             'transform: scale(' +
             imgScale +
             ') rotate(' +
@@ -60,14 +63,18 @@
             'deg);' +
             'max-width:100%;max-height: 100%'
           "
-        ></video>
+            ></video>
+            <!-- 图片加载失败 -->
+            <div class="heimgfont hevue-img-status-icon" v-show="items.imgState === 3">
+              &#xec0d;
+            </div>
+
+          </el-carousel-item>
+        </el-carousel>
 
 
 
-        <!-- 图片加载失败 -->
-        <div class="heimgfont hevue-img-status-icon" v-show="imgState === 3">
-          &#xec0d;
-        </div>
+
         <!-- 关闭按钮 -->
         <div
           class="heimgfont he-close-icon"
@@ -140,11 +147,12 @@
         <div class="he-control-num" v-if="controlBar && multiple">
           {{ imgIndex + 1 }} / {{ imgList.length }}
         </div>
-
+        <!---图片/视频描述--->
         <div class="he-control-title" v-if="controlBar && multiple">
           {{ imgList[imgIndex].title }}
         </div>
       </div>
+
     </div>
   </transition>
 </template>
@@ -169,8 +177,22 @@ export default {
       clientY: 0,
       imgIndex: 0,
       canRun: true,
-      imgurl: '',
-      imgState: 1,
+      imgSrcList:[{
+        imgurl:'',
+        imgState: 1,
+        video: false
+      },{
+        imgurl:'',
+        imgState: 1,
+        video:false
+      },{
+        imgurl:'',
+        imgState: 1,
+        video: false
+      },],
+      imgDomIndex: 0,
+      startPoint:0,
+      stopPoint: 0,
       start: [{}, {}],
       mobileScale: 0, // 手指离开时图片的缩放比例
       // 以下内容为用户传入配置
@@ -229,6 +251,7 @@ export default {
             if (this.keyboard) {
               document.addEventListener('keydown', this.keyHandleDebounce)
             }
+            this.slideBanner();
           })
         }
       },
@@ -236,6 +259,172 @@ export default {
     },
   },
   methods: {
+    startAuto(){
+      if(this.autoplay == false){
+        this.autoplay = true;
+      }
+    },
+    stopAuto(){
+      if(this.autoplay == true){
+        this.autoplay = false;
+      }
+    },
+    slideBanner(){
+      if (this.imgList.length < 2) {
+        return
+      }
+      let vm = this
+      //选中item的盒子
+      var box = document.querySelector('.el-carousel__container');
+
+      // 阈值，用于控制pc滑动的最小变化量
+      let threshold = 100;
+
+      //重置坐标
+      var resetPoint =  function(){
+        vm.startPoint = 0;
+        vm.stopPoint = 0;
+      }
+
+      //鼠标按下
+      box.addEventListener("mousedown",function(e){
+        //手指按下的时候停止自动轮播
+        vm.stopAuto();
+
+        vm.startPoint = e.pageX;
+        vm.stopPoint = e.pageY;
+
+        //鼠标滑动
+
+        box.addEventListener("mousemove",vm.mousemove_change);
+
+      });
+
+
+      //当鼠标抬起抬起的时候，判断图片滚动离左右的距离
+      box.addEventListener("mouseup",function(e){
+        box.removeEventListener('mousemove',vm.mousemove_change);
+        const currentMouseX = e.pageX;
+        const currentMouseY = e.pageY;
+
+        // 比较当前鼠标位置和上一次记录的鼠标位置
+        const deltaX = currentMouseX - vm.startPoint;
+        const deltaY = currentMouseY - vm.stopPoint;
+
+        // 判断移动方向
+        if (Math.abs(deltaX) > threshold) {
+          if (deltaX > 0) {
+            // console.log('向右滑动');
+            resetPoint();
+            vm.toogleImg(false)
+            // vm.$refs.carousel.prev();
+            return;
+          } else {
+            // console.log('向左滑动');
+            resetPoint();
+            vm.toogleImg(true)
+            // vm.$refs.carousel.next();
+            return;
+          }
+        }
+
+
+        if (Math.abs(deltaY) > threshold) {
+          if (deltaY > 0) {
+            // console.log('向下滑动');
+            vm.close({way: 'closeBtn'})
+          } else {
+            console.log('向上滑动');
+          }
+        }
+
+        // 更新上一次鼠标位置
+        vm.startPoint = currentMouseX;
+        vm.stopPoint = currentMouseY;
+
+      });
+
+
+      //手指按下
+      box.addEventListener("touchstart",function(e){
+        //手指按下的时候停止自动轮播
+        vm.stopAuto();
+
+        vm.startPoint = e.changedTouches[0].pageX;
+        vm.stopPoint = e.changedTouches[0].pageY;
+      });
+
+      //手指滑动
+      box.addEventListener("touchmove",function(e){
+        //手指滑动后终点位置X的坐标
+        // stopPoint = e.changedTouches[0].pageX;
+      });
+
+      //当手指抬起的时候，判断图片滚动离左右的距离
+      box.addEventListener("touchend",function(e){
+        threshold = 50
+
+        const currentMouseX = e.changedTouches[0].pageX;
+        const currentMouseY = e.changedTouches[0].pageY;
+
+        // 比较当前鼠标位置和上一次记录的鼠标位置
+        const deltaX = currentMouseX - vm.startPoint;
+        const deltaY = currentMouseY - vm.stopPoint;
+
+        // 判断移动方向
+        if (Math.abs(deltaX) > threshold) {
+          if (deltaX > 0) {
+            // console.log('向右滑动');
+            resetPoint();
+            vm.toogleImg(false)
+            // vm.$refs.carousel.prev();
+            return;
+          } else {
+            // console.log('向左滑动');
+            resetPoint();
+            vm.toogleImg(true)
+            // vm.$refs.carousel.next();
+            return;
+          }
+        }
+
+
+        if (Math.abs(deltaY) > threshold) {
+          if (deltaY > 0) {
+            // console.log('向下滑动');
+            vm.close({way: 'closeBtn'})
+          } else {
+            console.log('向上滑动');
+          }
+        }
+
+        // 更新上一次鼠标位置
+        vm.startPoint = currentMouseX;
+        vm.stopPoint = currentMouseY;
+      });
+    },
+
+    mousemove_change(e) {
+      return
+      //手指滑动后终点位置X的坐标
+      const currentMouseX = e.pageX;
+      const currentMouseY = e.pageY;
+      let threshold = 100
+      // 比较当前鼠标位置和上一次记录的鼠标位置
+      const deltaX = currentMouseX - this.startPoint;
+      // 判断移动方向
+      if (Math.abs(deltaX) > threshold) {
+        if (deltaX > 0) {
+          e.target.style.transform = "translateX("+deltaX+"px) scale(1)"
+          return;
+        } else {
+          e.target.style.transform = "translateX("+deltaX+"px) scale(1)"
+          return;
+        }
+      }
+    },
+
+
     playVideo() {
       this.videoSrc = this.imgList[this.imgIndex].src
       this.videoPlaying = true
@@ -266,11 +455,8 @@ export default {
       this.imgTop = 0
       this.imgLeft = 0
     },
-    /**
-     * 切换图片
-     * true 下一张
-     * false 上一张
-     */
+
+    /** 切换图片 true 下一张 false 上一张   */
     toogleImg(bool, way) {
       let fromIndex = this.imgIndex
       if (bool) {
@@ -278,25 +464,35 @@ export default {
         if (this.imgIndex > this.imgList.length - 1) {
           this.imgIndex = 0
         }
+        this.$refs.carousel.next();
       } else {
         this.imgIndex--
         if (this.imgIndex < 0) {
           this.imgIndex = this.imgList.length - 1
         }
+        this.$refs.carousel.prev();
       }
-      this.changeFn &&
-        this.changeFn({
-          type: bool ? 'next' : 'prev',
-          fromImgIndex: fromIndex,
-          fromImgUrl: this.imgList[fromIndex],
-          toImgIndex: this.imgIndex,
-          toImgUrl: this.imgList[this.imgIndex],
-          way,
-        })
-      // this.url = this.imgList[this.imgIndex]
+
+      // this.changeFn &&
+      //   this.changeFn({
+      //     type: bool ? 'next' : 'prev',
+      //     fromImgIndex: fromIndex,
+      //     fromImgUrl: this.imgList[fromIndex],
+      //     toImgIndex: this.imgIndex,
+      //     toImgUrl: this.imgList[this.imgIndex],
+      //     way,
+      //   })
+      // // this.url = this.imgList[this.imgIndex]
       this.changeUrl(this.imgList[this.imgIndex], this.imgIndex)
     },
-    // 改变图片地址
+
+    /***获取当前 swiper 下标***/
+    carouselChange(index) {
+      this.imgDomIndex = index
+      this.imgSrcList[index].imgState = 1
+    },
+
+    /*** 当前需要显示的item ***/
     /**
      * @description:
      * @param {String} url 要显示的图片的url
@@ -305,8 +501,8 @@ export default {
      */
     changeUrl(url, index) {
       this.videoPlaying = false
+      this.imgList[this.imgIndex].video = false
       this.imgList.length > 1 ? this.arrowBtn = true : this.arrowBtn = false
-      this.imgState = 1
       let img = new Image()
       if (typeof url == 'object') {
         if(/\.(mp4|webm|ogv|mov|avi|wmv|flv)$/i.test(url.src.split('?')[0])) {
@@ -333,31 +529,44 @@ export default {
           }
         }
         else {
-          this.imgList[this.imgIndex].video = false
           img.src = url.src
         }
 
       } else {
         img.src = url
       }
-      this.imgload(img,index)
+      this.imgload(img,index,url)
     },
-    imgload(img,index) {
+
+    /*** 图片加载完毕 ***/
+    imgload(img,index,item) {
+      // this.imgSrcList[this.imgDomIndex].video = true
       img.onload = () => {
         // 如果加载出来图片当下标不是当前显示图片当下标，则不予显示（用户点击过快当时候，会出现用户点到第三张了，此时第一张图片才加载完当情况）
         if (index != undefined && index == this.imgIndex) {
-          this.imgState = 2
-          this.imgurl = img.src
+          if(item.video) {
+            this.imgSrcList[this.imgDomIndex].video = true
+          } else {
+            this.imgSrcList[this.imgDomIndex].video = false
+          }
+          this.imgSrcList[this.imgDomIndex].imgState = 2
+          this.imgSrcList[this.imgDomIndex].imgurl = img.src
         } else if (index == undefined) {
-          this.imgState = 2
-          this.imgurl = img.src
+          if(item.video) {
+            this.imgSrcList[this.imgDomIndex].video = true
+          } else {
+            this.imgSrcList[this.imgDomIndex].video = false
+          }
+          this.imgSrcList[this.imgDomIndex].imgState = 2
+          this.imgSrcList[this.imgDomIndex].imgurl = img.src
         }
       }
       img.onerror = () => {
+        this.imgSrcList[this.imgDomIndex].video = false
         if (index != undefined && index == this.imgIndex) {
-          this.imgState = 3
+          this.imgSrcList[this.imgDomIndex].imgState = 3
         } else if (index == undefined) {
-          this.imgState = 3
+          this.imgSrcList[this.imgDomIndex].imgState = 3
         }
       }
 
@@ -404,6 +613,7 @@ export default {
     },
     // 鼠标按下
     addMove(e) {
+      return
       e = e || window.event
       this.clientX = e.clientX
       this.clientY = e.clientY
@@ -411,6 +621,7 @@ export default {
     },
     // 手指按下事件
     addMoveMobile(e) {
+      return
       e.preventDefault()
       e = e || window.event
       if (e.touches.length > 1) {
@@ -436,6 +647,8 @@ export default {
     },
     // 手指拖动
     moveFuncMobile(e) {
+
+      return
       e = e || window.event
       if (e.touches.length > 1) {
         var now = e.touches
@@ -581,6 +794,24 @@ export default {
 <style lang="less">
   .hevue-imgpreview-wrap {
     background: rgba(0,0,0,1);
+    -webkit-tap-highlight-color:transparent;
+    .el-carousel {
+      width: 100%;
+      height: 100%;
+      max-height: 88.5% !important;
+      .el-carousel__item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .el-carousel__container {
+        width: 100%;
+        height: 100%;
+      }
+    }
+    .el-carousel--horizontal {
+      overflow-x: initial !important;
+    }
     .he-img-wrap {
       background: transparent !important;
       video {
@@ -592,7 +823,7 @@ export default {
         margin: auto;
       }
       img {
-        max-height: 90% !important;
+        max-height: 100%;
         //transform: scale(0.9) !important;
       }
       .he-control-title {
