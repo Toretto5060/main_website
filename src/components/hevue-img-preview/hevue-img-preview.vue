@@ -12,7 +12,7 @@
 
       <div class="he-img-wrap">
 
-        <el-carousel :interval="4000" indicator-position="outside" arrow="never" :autoplay="false" :indicator-position="'none'"  ref="carousel" @change="carouselChange">
+        <el-carousel :interval="4000" indicator-position="outside" arrow="never" :autoplay="false" indicatorPosition="none"  ref="carousel" @change="carouselChange">
           <el-carousel-item v-for="(items,index) in imgSrcList" :key="index">
 
             <!--图片加载loading-->
@@ -270,9 +270,6 @@ export default {
       }
     },
     slideBanner(){
-      if (this.imgList.length < 2) {
-        return
-      }
       let vm = this
       //选中item的盒子
       var box = document.querySelector('.el-carousel__container');
@@ -311,23 +308,24 @@ export default {
         const deltaX = currentMouseX - vm.startPoint;
         const deltaY = currentMouseY - vm.stopPoint;
 
-        // 判断移动方向
-        if (Math.abs(deltaX) > threshold) {
-          if (deltaX > 0) {
-            // console.log('向右滑动');
-            resetPoint();
-            vm.toogleImg(false)
-            // vm.$refs.carousel.prev();
-            return;
-          } else {
-            // console.log('向左滑动');
-            resetPoint();
-            vm.toogleImg(true)
-            // vm.$refs.carousel.next();
-            return;
+        if (vm.imgList.length > 1) {
+          // 判断移动方向
+          if (Math.abs(deltaX) > threshold) {
+            if (deltaX > 0) {
+              // console.log('向右滑动');
+              resetPoint();
+              vm.toogleImg(false)
+              // vm.$refs.carousel.prev();
+              return;
+            } else {
+              // console.log('向左滑动');
+              resetPoint();
+              vm.toogleImg(true)
+              // vm.$refs.carousel.next();
+              return;
+            }
           }
         }
-
 
         if (Math.abs(deltaY) > threshold) {
           if (deltaY > 0) {
@@ -371,23 +369,24 @@ export default {
         const deltaX = currentMouseX - vm.startPoint;
         const deltaY = currentMouseY - vm.stopPoint;
 
-        // 判断移动方向
-        if (Math.abs(deltaX) > threshold) {
-          if (deltaX > 0) {
-            // console.log('向右滑动');
-            resetPoint();
-            vm.toogleImg(false)
-            // vm.$refs.carousel.prev();
-            return;
-          } else {
-            // console.log('向左滑动');
-            resetPoint();
-            vm.toogleImg(true)
-            // vm.$refs.carousel.next();
-            return;
+        if (vm.imgList.length > 1) {
+          // 判断移动方向
+          if (Math.abs(deltaX) > threshold) {
+            if (deltaX > 0) {
+              // console.log('向右滑动');
+              resetPoint();
+              vm.toogleImg(false)
+              // vm.$refs.carousel.prev();
+              return;
+            } else {
+              // console.log('向左滑动');
+              resetPoint();
+              vm.toogleImg(true)
+              // vm.$refs.carousel.next();
+              return;
+            }
           }
         }
-
 
         if (Math.abs(deltaY) > threshold) {
           if (deltaY > 0) {
